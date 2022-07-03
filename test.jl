@@ -1,14 +1,14 @@
 include("sinkhorn_mul.jl")
 include("sinkhorn_mul_logstab.jl")
 # include("theta.jl")
-# include("sinkhorn_explmul.jl")
-# include("sinkhorn_explmul_logstab.jl")
+include("sinkhorn_explmul.jl")
+include("sinkhorn_explmul_logstab.jl")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 function run()
-    n=10
+    n=100
     x = reshape([1:1.:n;],(n,1))
     a = reshape([1:1.:n;]/sum(x),(n,1))
     b = reshape([n:-1.:1;]/sum(x),(n,1))
@@ -38,14 +38,14 @@ function run()
     # @time cost, residual = sinkhorn_explmul(x,x,a,b,eps)
     # println("Final cost: ", cost)
     #
-    # println("explicit for-loop multiplication, log-stabilised")
-    # @time cost, residual = sinkhorn_explmul_logstab(x,x,a,b,eps)
-    # println("Final cost: ", cost)
-    #
-    println("multiplication from Julia:")
-    @time cost, residual = sinkhorn_mul(x,x,a,b,eps)
-    # @time cost, residual = sinkhorn_mul(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
+    println("explicit for-loop multiplication, log-stabilised")
+    @time cost, residual = sinkhorn_explmul_logstab(x,x,a,b,eps)
     println("Final cost: ", cost)
+    #
+    # println("multiplication from Julia:")
+    # @time cost, residual = sinkhorn_mul(x,x,a,b,eps)
+    # @time cost, residual = sinkhorn_mul(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
+    # println("Final cost: ", cost)
 
     println("multiplication from Julia, log-stabilised:")
     @time cost, residual = sinkhorn_mul_logstab(x,x,a,b,eps)

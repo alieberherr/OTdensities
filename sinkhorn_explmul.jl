@@ -6,7 +6,6 @@
 ################################################################################
 
 using Pkg
-using FLoops
 using LinearAlgebra
 
 debug = true
@@ -38,9 +37,9 @@ end
 function update_potentials(unew,vnew,ucurrent,vcurrent,x,y,a,b,eps)
     n = size(ucurrent)[1]
     m = size(vcurrent)[1]
-    
+
     tmp = zeros(n)
-    
+
     expcost_multiply(tmp,x,y,vcurrent,eps)
     for i in 1:n
         unew[i] = a[i]/tmp[i]
@@ -55,11 +54,11 @@ end
 function check_convergence(ucurrent,vcurrent,x,y,eps,a)
     n = size(ucurrent)[1]
     m = size(vcurrent)[1]
-    
+
     tmp = zeros(n)
-    
+
     residual = 0.
-    expcost_multiply(tmp,x,y,vcurrent,eps) 
+    expcost_multiply(tmp,x,y,vcurrent,eps)
     for i in 1:n
         residual += abs(a[i] - ucurrent[i]*tmp[i])
     end
@@ -67,7 +66,7 @@ function check_convergence(ucurrent,vcurrent,x,y,eps,a)
 end
 
 function eval_cost(x,y,ucurrent,vcurrent,eps)
-    n = size(ucurrent)[1] 
+    n = size(ucurrent)[1]
     m = size(vcurrent)[1]
     MKdotv = zeros(n)
     cost = 0.
@@ -93,31 +92,31 @@ function eval_cost(x,y,ucurrent,vcurrent,eps)
     return cost
 end
 
-function sinkhorn_explmul(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,evalStep=500)
+function sinkhorn_explmul(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,evalStep=50)
     n = size(x)[1]
     m = size(y)[1]
-    
+
     uold = reshape(ones(n)/n,(n,1))
     ucurrent = reshape(ones(n)/n,(n,1))
-    
+
     vold = reshape(ones(m)/m,(m,1))
     vcurrent = reshape(ones(m)/m,(m,1))
-    
+
     nit = 0
     residual = 1.
     cost = 0.
-    
+
     while (nit <= numItermax)
         uold = copy(ucurrent)
         vold = copy(vcurrent)
 
         update_potentials(ucurrent,vcurrent,uold,vold,x,y,a,b,eps)
-        
+
         if (any(isnan,ucurrent) || any(isnan,vcurrent))
             println("Warning: numerical errors at iteration: ", nit,", breaking", nit)
-            cost = eval_cost(x,y,uold,vold,eps)
+            break
         end
-            
+
         converged = false
         if (nit % evalStep == 0)
             residual = check_convergence(ucurrent,vcurrent,x,y,eps,a)
@@ -131,6 +130,6 @@ function sinkhorn_explmul(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,evalStep=50
         end
         nit += 1
     end
-    
+
     return cost, residual
 end

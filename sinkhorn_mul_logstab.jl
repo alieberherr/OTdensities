@@ -6,14 +6,9 @@
 ################################################################################
 
 using Pkg
-using FLoops
 using LinearAlgebra
 
 debug = true
-const numItermax=1e8
-const threshold=1e-08
-const evalStep=20
-const tau=1e5
 
 function build_cost(M,x,y,n,m)
     for i in 1:n
@@ -38,7 +33,7 @@ function check_convergence(ucurrent,vcurrent,x,y,eps,a)
     residual
 end
 
-function sinkhorn_mul_logstab(x,y,a,b,eps)
+function sinkhorn_mul_logstab(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau=1e5,evalStep=500)
     n = size(x)[1]
     m = size(y)[1]
 
