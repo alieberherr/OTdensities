@@ -8,9 +8,8 @@
 using Pkg
 using LinearAlgebra
 
-debug = true
-
 function expcost_multiply(result,l,r,v,eps,alpha,beta,tol=1e-10)
+    fill!(result,0.0)
     Threads.@threads for i in 1:size(result)[1]
     	for j in 1:size(v)[1]
             tmp=0.
@@ -22,34 +21,23 @@ function expcost_multiply(result,l,r,v,eps,alpha,beta,tol=1e-10)
     end
 end
 
-function update_potentials(unew,vnew,ucurrent,vcurrent,alpha,beta,x,y,a,b,eps)
-    n = size(ucurrent)[1]
-    m = size(vcurrent)[1]
+function update_potentials(u,v,alpha,beta,x,y,a,b,eps)
+    n = size(u)[1]
+    m = size(v)[1]
 
-    tmp = zeros(n)
-
-    expcost_multiply(tmp,x,y,vcurrent,eps,alpha,beta)
-    for i in 1:n
-        unew[i] = a[i]/tmp[i]
-    end
-    tmp = zeros(m)
-    expcost_multiply(tmp,y,x,unew,eps,beta,alpha)
-    for i in 1:n
-        vnew[i] = b[i]/tmp[i]
-    end
+    fill!(u,0.0)
+    expcost_multiply(u,x,y,v,eps,alpha,beta)
+    u .= a./u
+    expcost_multiply(v,y,x,u,eps,beta,alpha)
+    v .= b./v
 end
 
-function check_convergence(alpha,beta,ucurrent,vcurrent,x,y,eps,a)
+function check_convergence(alpha,beta,u,v,x,y,eps,a)
     n = size(alpha)[1]
-    m = size(beta)[1]
 
     tmp = zeros(n)
-
-    residual = 0.
-    expcost_multiply(tmp,x,y,vcurrent,eps,alpha,beta)
-    for i in 1:n
-        residual += abs(a[i] - ucurrent[i]*tmp[i])
-    end
+    expcost_multiply(tmp,x,y,v,eps,alpha,beta)
+    residual = sum(abs.(a.-u.*tmp))
     return residual
 end
 
@@ -76,8 +64,8 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau
     n = size(x)[1]
     m = size(y)[1]
 
-    alpha = zeros(n)
-    beta = zeros(m)
+    alpha = reshape(zeros(n),(n,1))
+    beta = reshape(zeros(m),(m,1))
 
     uold = reshape(ones(n)/n,(n,1))
     ucurrent = reshape(ones(n)/n,(n,1))
@@ -93,20 +81,18 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau
         uold = copy(ucurrent)
         vold = copy(vcurrent)
 
-        update_potentials(ucurrent,vcurrent,uold,vold,alpha,beta,x,y,a,b,eps)
+        update_potentials(ucurrent,vcurrent,alpha,beta,x,y,a,b,eps)
 
         if maximum(abs.(ucurrent)) > tau && maximum(abs.(vcurrent)) > tau || nit % evalStep == 0
-            alpha = alpha + eps*log.(ucurrent)
-            beta = beta + eps*log.(vcurrent)
-            ucurrent = reshape(ones(n),(n,1))
-            vcurrent = reshape(ones(m),(m,1))
+            alpha .+= eps*log.(ucurrent)
+            beta .+= eps*log.(vcurrent)
+            fill!(ucurrent,1.0)
+            fill!(vcurrent,1.0)
         end
 
         if (nit % evalStep == 0)
             residual = check_convergence(alpha,beta,ucurrent,vcurrent,x,y,eps,a)
-            if (debug)
-                println("residual in iteration ", nit,": ",residual)
-            end
+            println("residual in iteration ", nit,": ",residual)
             if (residual < threshold)
                 cost = eval_cost(x,y,ucurrent,vcurrent,alpha,beta,eps)
                 break

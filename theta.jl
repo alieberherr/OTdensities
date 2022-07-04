@@ -65,7 +65,7 @@ function cube_to_array(filename,vals,dV,retrn)
             end
         end
     end
-    
+
     grid = zeros((nx*ny*nz,3))
 	for i in 1:nx
 		for j in 1:ny
@@ -78,7 +78,7 @@ function cube_to_array(filename,vals,dV,retrn)
             end
         end
     end
-    
+
     if (retrn)
         return grid
     end
@@ -89,7 +89,7 @@ function wasserstein(filenamea,filenameb,eps=.5)
     vals1 = zeros(0)
     vals2 = zeros(0)
     dV = zeros(3)
-    
+
     println("stats for reading of orbitals")
     @time grid=cube_to_array(filenamea,vals1,dV,true)
     @time cube_to_array(filenameb,vals2,dV,false)
@@ -99,21 +99,21 @@ function wasserstein(filenamea,filenameb,eps=.5)
     vals2 .= vals2./sqrt(sum(vals2.^2))#*prod(dV))
     # println("check valsums are equal: ",sum(vals1.^2)," and ",sum(vals2.^2))
     println("stats for Sinkhorn")
-    # cost,res =  sinkhorn_mul(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
-    return 1.0
-    # return cost
+    cost,res =  sinkhorn_mul(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
+    # return 1.0
+    return cost
 end
 
 function main()
-    
-    dir = "test/"
+
+    dir = "/u/dem/chem1614/OTproject/molecules_turbomole/"
     isturbomole = true
-    
+
     args = parse_commandline()
     resultsfile = args["resultsfile"]
     exfile = args["exfile"]
     orbitals = args["orbitals"]
-    
+
     open(resultsfile, "w") do resfile
         write(resfile,"Molecule,Functional,Excitation,Theta1,Theta2\n")
         exdata = CSV.read(exfile, DataFrame)
@@ -126,13 +126,13 @@ function main()
             if (ncntrib == 0)
                 continue
             end
-            
+
             versions = 1
             if occursin("Delta",excitation)
                 versions = 2
             end
             Theta = zeros(versions)
-            
+
             for j in 1:versions
                 for k in 1:ncntrib
                     phia = exdata[i,"occ$k"]
@@ -141,7 +141,7 @@ function main()
                     if (isturbomole)
                         phia = replace(phia, " " => "")
                         phib = replace(phib, " " => "")
-                        
+
                         if occursin("e",phia) && occursin("e",phib)
                             if j==1
                                 phia = phia * "1"
@@ -166,7 +166,7 @@ function main()
                                 phib = phib * "2"
                             end
                         end
-                                
+
                         filenamea = dir * molecule * "/" * functional * "/" * orbitals * "/" * phia * ".cub"
                         filenameb = dir * molecule * "/" * functional * "/" * orbitals * "/" * phib * ".cub"
                     else
@@ -182,7 +182,7 @@ function main()
                         println("failed: ",molecule,", ",excitation,", ",functional,", ",phia,", ",phib)
                         failed = true
                     end
-                    
+
                 end # ncntrib
             end # versions
             if (!failed)

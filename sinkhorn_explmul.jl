@@ -8,8 +8,6 @@
 using Pkg
 using LinearAlgebra
 
-debug = true
-
 function expcost_multiply(result,l,r,u,eps,tol=1e-10)
     for i in 1:size(result)[1]
     	for j in 1:size(u)[1]
@@ -74,21 +72,6 @@ function eval_cost(x,y,ucurrent,vcurrent,eps)
     for i in 1:size(MKdotv)[1]
         cost += ucurrent[i]*MKdotv[i]
     end
-    # if debug
-    #     # testing
-    #     plan = zeros(n, m)
-    #     K = zeros(n, m)
-    #     left = zeros(n,n)
-    #     right= zeros(n,n)
-    #     for i in 1:n
-    #         for j in 1:m
-    #             K[i,j] = exp(-(x[i] - y[j])^2/eps)
-    #             right[j,j] = vcurrent[j]
-    #         end
-    #         left[i,i] = ucurrent[i]
-    #     end
-    #     plan = left*K*right
-    # end
     return cost
 end
 
@@ -120,9 +103,7 @@ function sinkhorn_explmul(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,evalStep=50
         converged = false
         if (nit % evalStep == 0)
             residual = check_convergence(ucurrent,vcurrent,x,y,eps,a)
-            if (debug)
-                println("residual in iteration ", nit,": ",residual)
-            end
+            println("residual in iteration ", nit,": ",residual)
         end
         if (residual < threshold)
             cost = eval_cost(x,y,ucurrent,vcurrent,eps)

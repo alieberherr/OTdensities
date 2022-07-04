@@ -6,9 +6,7 @@ include("sinkhorn_explmul_logstab.jl")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-function run()
-    n=100
+function run(n)
     x = reshape([1:1.:n;],(n,1))
     a = reshape([1:1.:n;]/sum(x),(n,1))
     b = reshape([n:-1.:1;]/sum(x),(n,1))
@@ -47,8 +45,8 @@ function run()
     # @time cost, residual = sinkhorn_mul(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
     # println("Final cost: ", cost)
 
-    println("multiplication from Julia, log-stabilised:")
-    @time cost, residual = sinkhorn_mul_logstab(x,x,a,b,eps)
+    # println("multiplication from Julia, log-stabilised:")
+    # @time cost, residual = sinkhorn_mul_logstab(x,x,a,b,eps)
     # @time cost, residual = sinkhorn_mul_logstab(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
-    println("Final cost: ", cost)
+    # println("Final cost: ", cost)
 end

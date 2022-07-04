@@ -6,13 +6,7 @@
 ################################################################################
 
 using Pkg
-using FLoops
 using LinearAlgebra
-
-debug = true
-const numItermax=1e8
-const threshold=1e-08
-const evalStep=20
 
 function build_cost(M,x,y,n,m)
     for i in 1:n
@@ -24,39 +18,39 @@ function build_cost(M,x,y,n,m)
     end
 end
 
-function sinkhorn_mul(x,y,a,b,eps)
+function sinkhorn_mul(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau=1e5,evalStep=500)
     n = size(x)[1]
     m = size(y)[1]
-    
-    
+
+
     M = zeros((n,m))
     build_cost(M,x,y,n,m)
     K = exp.(-M/eps)
-    
+
     uold = reshape(ones(n)/n,(n,1))
     ucurrent = reshape(ones(n)/n,(n,1))
-    
+
     # vold = reshape(ones(m)/m,(m,1))
     vcurrent = reshape(ones(m)/m,(m,1))
-    
+
     nit = 0
     residual = 1.
     cost = 0.
-    
+
     while (nit < numItermax)
         # copy!(uold,ucurrent)
         # copy!(vold,vcurrent)
-    
+
         mul!(ucurrent,K,vcurrent)
         ucurrent .= a./ucurrent
         mul!(vcurrent,transpose(K),ucurrent)
         vcurrent .= b./vcurrent
-    
+
         if (any(isnan,ucurrent) || any(isnan,vcurrent))
             println("Warning: numerical errors at iteration: ", nit,", breaking.")
             break
         end
-    
+
         if (nit % evalStep == 0)
             mul!(uold,K,vcurrent) # overwrite uold
             if (debug)
@@ -71,6 +65,6 @@ function sinkhorn_mul(x,y,a,b,eps)
         end
         nit += 1
     end
-    
+
     cost, residual
 end
