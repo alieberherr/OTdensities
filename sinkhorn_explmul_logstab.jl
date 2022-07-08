@@ -60,30 +60,43 @@ function eval_cost(x,y,u,v,alpha,beta,eps)
     return cost
 end
 
-function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau=1e5,evalStep=500)
+function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=2000,threshold=1e-08,tau=1e5,evalStep=500)
     n = size(x)[1]
     m = size(y)[1]
 
     alpha = reshape(zeros(n),(n,1))
     beta = reshape(zeros(m),(m,1))
-
-    uold = reshape(ones(n)/n,(n,1))
     ucurrent = reshape(ones(n)/n,(n,1))
-
-    vold = reshape(ones(m)/m,(m,1))
     vcurrent = reshape(ones(m)/m,(m,1))
+    # read data from file if there is any
+    if (isfile("alpha.dat") && isfile("beta.dat") && isfile("u.dat") && isfile("v.dat"))
+        println("initialising from previous iteration")
+        f = open("alpha.dat")
+        g = open("beta.dat")
+        h = open("u.dat")
+        k = open("v.dat")
+        for i in 1:n
+            alpha[i] = parse(Float64,readline(f))
+            ucurrent[i] = parse(Float64,readline(h))
+        end
+        for i in 1:m
+            beta[i] = parse(Float64,readline(g))
+            vcurrent[i] = parse(Float64,readline(k))
+        end
+        close(f)
+        close(g)
+        close(h)
+        close(k)
+    end
 
     nit = 0
     residual = 1.
     cost = 0.
 
     while (nit <= numItermax)
-        uold = copy(ucurrent)
-        vold = copy(vcurrent)
-
         update_potentials(ucurrent,vcurrent,alpha,beta,x,y,a,b,eps)
 
-        if maximum(abs.(ucurrent)) > tau && maximum(abs.(vcurrent)) > tau || nit % evalStep == 0
+        if maximum(abs.(ucurrent)) > tau && maximum(abs.(vcurrent)) > tau
             alpha .+= eps*log.(ucurrent)
             beta .+= eps*log.(vcurrent)
             fill!(ucurrent,1.0)
@@ -91,6 +104,22 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau
         end
 
         if (nit % evalStep == 0)
+            f = open("alpha.dat","w")
+            g = open("u.dat","w")
+            for i in 1:n
+                println(f,alpha[i])
+                println(g,ucurrent[i])
+            end
+            close(f)
+            close(g)
+            f = open("beta.dat","w")
+            g = open("v.dat","w")
+            for i in 1:m
+                println(f,beta[i])
+                println(g,vcurrent[i])
+            end
+            close(f)
+            close(g)
             residual = check_convergence(alpha,beta,ucurrent,vcurrent,x,y,eps,a)
             println("residual in iteration ", nit,": ",residual)
             if (residual < threshold)
@@ -98,7 +127,6 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau
                 break
             end
         end
-
         nit += 1
     end
 
