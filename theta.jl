@@ -4,7 +4,7 @@ using DataFrames
 
 # include("sinkhorn_mul.jl")
 # include("sinkhorn_mul_logstab.jl")
-include("sinkhorn_explmul_logstab")
+include("sinkhorn_explmul_logstab.jl")
 
 const re = r"([\+\-]?\d{1,}\.?\d{0,}[eE]?[\+\-]?\d{0,})"
 
@@ -17,6 +17,8 @@ function parse_commandline()
             help="filename of the excitations"
         "--orbitals"
             help="name of the orbital directory"
+        "--dir"
+            help="name of general directory"
     end
     return parse_args(s)
 end
@@ -107,13 +109,13 @@ end
 
 function main()
 
-    dir = "/u/dem/chem1614/OTproject/molecules_turbomole/"
     isturbomole = true
 
     args = parse_commandline()
     resultsfile = args["resultsfile"]
     exfile = args["exfile"]
     orbitals = args["orbitals"]
+    dir = args["dir"]
 
     open(resultsfile, "w") do resfile
         write(resfile,"Molecule,Functional,Excitation,Theta1,Theta2\n")
