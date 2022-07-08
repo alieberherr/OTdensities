@@ -2,8 +2,9 @@ using ArgParse
 using CSV
 using DataFrames
 
-include("sinkhorn_mul.jl")
+# include("sinkhorn_mul.jl")
 # include("sinkhorn_mul_logstab.jl")
+include("sinkhorn_explmul_logstab")
 
 const re = r"([\+\-]?\d{1,}\.?\d{0,}[eE]?[\+\-]?\d{0,})"
 
@@ -99,7 +100,7 @@ function wasserstein(filenamea,filenameb,eps=.5)
     vals2 .= vals2./sqrt(sum(vals2.^2))#*prod(dV))
     # println("check valsums are equal: ",sum(vals1.^2)," and ",sum(vals2.^2))
     println("stats for Sinkhorn")
-    cost,res =  sinkhorn_mul(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
+    cost,res =  sinkhorn_explmul_logstabmul(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
     # return 1.0
     return cost
 end
