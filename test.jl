@@ -37,7 +37,7 @@ function run(n)
     # println("Final cost: ", cost)
     #
     println("explicit for-loop multiplication, log-stabilised")
-    @time cost, residual = sinkhorn_explmul_logstab(x,x,a,b,eps)
+    @time cost, residual = sinkhorn_explmul_logstab(x,x,a,b,eps,"test")
     println("Final cost: ", cost)
     #
     # println("multiplication from Julia:")

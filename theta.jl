@@ -19,6 +19,9 @@ function parse_commandline()
             help="name of the orbital directory"
         "--dir"
             help="name of general directory"
+        "--eps"
+            help="regularisation parameters"
+            arg_type = Float64
     end
     return parse_args(s)
 end
@@ -87,12 +90,13 @@ function cube_to_array(filename,vals,dV,retrn)
     end
 end
 
-function wasserstein(filenamea,filenameb,eps=.5)
+function wasserstein(filenamea,filenameb,name,eps)
     # initialise empty arrays
     vals1 = zeros(0)
     vals2 = zeros(0)
     dV = zeros(3)
 
+    println("SINKHORN WITH REGULARISATION EPS=",eps)
     println("stats for reading of orbitals")
     @time grid=cube_to_array(filenamea,vals1,dV,true)
     @time cube_to_array(filenameb,vals2,dV,false)
@@ -102,7 +106,7 @@ function wasserstein(filenamea,filenameb,eps=.5)
     vals2 .= vals2./sqrt(sum(vals2.^2))#*prod(dV))
     # println("check valsums are equal: ",sum(vals1.^2)," and ",sum(vals2.^2))
     println("stats for Sinkhorn")
-    cost,res =  sinkhorn_explmul_logstab(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
+    cost,res =  sinkhorn_explmul_logstab(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps,name)
     # return 1.0
     return cost
 end
@@ -117,9 +121,10 @@ function main()
     exfile = args["exfile"]
     orbitals = args["orbitals"]
     dir = args["dir"]
+    eps = args["eps"]
 
     open(resultsfile, "w") do resfile
-        write(resfile,"Molecule,Functional,Excitation,Theta1,Theta2\n")
+        write(resfile,"Molecule,Functional,Excitation,Theta1,Theta2,eps\n")
         exdata = CSV.read(exfile, DataFrame)
         for i in 1:nrow(exdata)
             failed = false
@@ -132,7 +137,7 @@ function main()
             end
 
             versions = 1
-            if occursin("Delta",excitation)
+            if occursin("Delta",excitation) || (occursin("Sigma",excitation) && occursin("-",excitation)) || occursin("Piu",excitation) || occursin("Pig-",excitation)
                 versions = 2
             end
             Theta = zeros(versions)
@@ -179,7 +184,8 @@ function main()
                     end
                     println("Molecule: ",molecule,", Excitation: ", excitation,", Functional: ", functional,", Phia: ", phia,", Phib: ", phib)
                     if (isfile(filenamea) && isfile(filenameb))
-                        th = wasserstein(filenamea,filenameb)
+                        name = molecule*"cntrb"*string(k)*"version"*string(j)
+                        th = wasserstein(filenamea,filenameb,name,eps)
                         println("Theta: ",th," with contribution: ",c)
                         Theta[j] = Theta[j] + c*th
                     else
@@ -193,9 +199,9 @@ function main()
                  # write row
                  for i=1:versions
                      if i==2
-                         write(resfile,molecule*functional*excitation*",,$(Theta[i])\n")
+                         write(resfile,molecule*","*functional*","*excitation*",,$(Theta[i]),$(eps)\n")
                      else
-                         write(resfile,molecule*functional*excitation*",$(Theta[i])\n")
+                         write(resfile,molecule*","*functional*","*excitation*",$(Theta[i]),,$(eps)\n")
                      end
                  end
             end

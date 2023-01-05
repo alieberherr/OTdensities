@@ -60,21 +60,22 @@ function eval_cost(x,y,u,v,alpha,beta,eps)
     return cost
 end
 
-function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=100000,threshold=1e-08,tau=1e5,evalStep=1000)
+function sinkhorn_explmul_logstab(x,y,a,b,eps,name,numItermax=1000,threshold=1e-08,tau=1e5,evalStep=10)
     n = size(x)[1]
     m = size(y)[1]
 
     alpha = reshape(zeros(n),(n,1))
     beta = reshape(zeros(m),(m,1))
+    # read data from file if there is any
+    println("name:",name)
     ucurrent = reshape(ones(n)/n,(n,1))
     vcurrent = reshape(ones(m)/m,(m,1))
-    # read data from file if there is any
-    if (isfile("alpha.dat") && isfile("beta.dat") && isfile("u.dat") && isfile("v.dat"))
+    if (isfile("alpha"*name*".dat") && isfile("beta"*name*".dat") && isfile("u"*name*".dat") && isfile("v"*name*".dat"))
         println("initialising from previous iteration")
-        f = open("alpha.dat")
-        g = open("beta.dat")
-        h = open("u.dat")
-        k = open("v.dat")
+        f = open("alpha"*name*".dat")
+        g = open("beta"*name*".dat")
+        h = open("u"*name*".dat")
+        k = open("v"*name*".dat")
         for i in 1:n
             alpha[i] = parse(Float64,readline(f))
             ucurrent[i] = parse(Float64,readline(h))
@@ -88,6 +89,8 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=100000,threshold=1e-08,
         close(h)
         close(k)
     end
+    ucurrent = reshape(ones(n)/n,(n,1))
+    vcurrent = reshape(ones(m)/m,(m,1))
 
     nit = 0
     residual = 1.
@@ -96,7 +99,7 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=100000,threshold=1e-08,
     while (nit <= numItermax)
         update_potentials(ucurrent,vcurrent,alpha,beta,x,y,a,b,eps)
 
-        if maximum(abs.(ucurrent)) > tau && maximum(abs.(vcurrent)) > tau
+        if (maximum(abs.(ucurrent)) > tau || maximum(abs.(vcurrent)) > tau) || nit==numItermax
             alpha .+= eps*log.(ucurrent)
             beta .+= eps*log.(vcurrent)
             fill!(ucurrent,1.0)
@@ -104,16 +107,16 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=100000,threshold=1e-08,
         end
 
         if (nit % evalStep == 0)
-            f = open("alpha.dat","w")
-            g = open("u.dat","w")
+            f = open("alpha"*name*".dat","w")
+            g = open("u"*name*".dat","w")
             for i in 1:n
                 println(f,alpha[i])
                 println(g,ucurrent[i])
             end
             close(f)
             close(g)
-            f = open("beta.dat","w")
-            g = open("v.dat","w")
+            f = open("beta"*name*".dat","w")
+            g = open("v"*name*".dat","w")
             for i in 1:m
                 println(f,beta[i])
                 println(g,vcurrent[i])
@@ -123,6 +126,17 @@ function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=100000,threshold=1e-08,
             residual = check_convergence(alpha,beta,ucurrent,vcurrent,x,y,eps,a)
             println("residual in iteration ", nit,": ",residual)
             if (residual < threshold)
+                alpha .+= eps*log.(ucurrent)
+                beta .+= eps*log.(vcurrent)
+                f = open("alpha"*name*".dat","w")
+                for i in 1:n
+                    println(f,alpha[i])
+                end
+                close(f)
+                f = open("beta"*name*".dat","w")
+                for i in 1:m
+                    println(f,beta[i])
+                end
                 cost = eval_cost(x,y,ucurrent,vcurrent,alpha,beta,eps)
                 break
             end

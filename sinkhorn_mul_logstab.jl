@@ -31,7 +31,7 @@ function check_convergence(ucurrent,vcurrent,x,y,eps,a)
     residual
 end
 
-function sinkhorn_mul_logstab(x,y,a,b,eps,numItermax=1e8,threshold=1e-08,tau=1e5,evalStep=500)
+function sinkhorn_mul_logstab(x,y,a,b,eps,numItermax=5,threshold=1e-08,tau=1e5,evalStep=500)
     n = size(x)[1]
     m = size(y)[1]
 
