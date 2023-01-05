@@ -3,15 +3,16 @@ import utils
 import argparse
 import csv
 import os
+import glob
 
-parser = argparse.ArgumentParser(description="Computation of Lambda descriptor")
+parser = argparse.ArgumentParser(description="Test normalisation")
 parser.add_argument('--dir', help="working directory")
 
-#molecules = ["DMABN","PP","acene1","acene2","acene3","acene4","acene5","betadipeptide","co","dipeptide","formaldehyde",
-#             "hcl","n2","polyacetylene2","polyacetylene3","polyacetylene4","polyacetylene5","tripeptide"]
-#molecules = ["betadipeptide","hcl"]
-molecules = ["hcl"]
-functionals = ['pbe','b3lyp','camb3lyp']
+molecules = ["DMABN","PP","acene1","acene2","acene3","acene4","acene5","betadipeptide","co","dipeptide","formaldehyde",
+             "hcl","n2","polyacetylene2","polyacetylene3","polyacetylene4","polyacetylene5","tripeptide"]
+molecules = ["n2","formaldehyde","co"]
+molecules = ["co"]
+functionals = ['b3lyp','camb3lyp']
 
 # def test_orca(args):
 # 	#mos_PBE = []
@@ -48,30 +49,24 @@ functionals = ['pbe','b3lyp','camb3lyp']
 # 		print "mo=%s - normalisation %f"%(mo, I1)
         
 def test_turbomole(args):
-	for molecule in molecules:
-		print("====",molecule,"======")
-		for functional in functionals:
-			print("====",functional,"======")
-			if os.path.isfile(f"../data/excitations/turbomole/maps/%s_%s_map.npy"%(molecule,functional)):
-				dict = np.load(f"../data/excitations/turbomole/maps/%s_%s_map.npy"%(molecule,functional),allow_pickle=True).item()
-			else:
-				print("failed:",molecule, functional)
-				continue
-			for key in dict.keys():
-				phia = key.replace(" ","")
-				if ("e" in phia):
-					for i in ["1","2"]:
-						filename = args.dir + molecule + "/" + functional + "/" + phia + i + ".cub"
-						grid, vals, stats = utils.cube_to_array(filename)
-						I = utils.integrate3D(grid, vals**2)
-						print(f"%s%s: int |phi|^2 dV=%f"%(key,i,I))
-				else:
+	with open("../collection/normalisation_19d0_co.csv",'w') as wfile:
+		writer = csv.DictWriter(wfile, fieldnames=["Molecule", "Functional", "Orbital", "Integral"])
+		writer.writeheader()
+		for molecule in molecules:
+			print("====",molecule,"======")
+			for functional in functionals:
+				print("====",functional,"======")
+				for fnam in glob.glob(args.dir+molecule+"/"+functional+"/*.cub"):
+					phia = fnam.split("/")[-1][:-4]
+					print("phia:",phia)
 					filename = args.dir + molecule + "/" + functional + "/" + phia + ".cub"
 					grid, vals, stats = utils.cube_to_array(filename)
 					I = utils.integrate3D(grid, vals**2)
-					print(f"%s: int |phi|^2 dV=%f"%(key,I))
-		print("==========================================")
-                
+					print(f"%s: int |phi|^2 dV=%f"%(phia,I))
+					writer.writerow({"Molecule": molecule, "Functional": functional, "Orbital": phia, "Integral": I})
+					if (I < 0.99):
+						print("orbital not normalised, moving on...")
+						break
                 
 
 if __name__ == '__main__':

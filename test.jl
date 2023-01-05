@@ -50,3 +50,5 @@ function run(n)
     # @time cost, residual = sinkhorn_mul_logstab(grid,grid,vals1.^2 .+ 1e-16,vals2.^2 .+ 1e-16,eps)
     # println("Final cost: ", cost)
 end
+
+run(100)

@@ -39,8 +39,8 @@ if __name__ == '__main__':
 				failed=False
 				if line["no contr"] == '':
 					continue
-                        	# molecule = line["\xef\xbb\xbfMolecule"]
-				molecule = line["Molecule"]
+				molecule = line["\ufeffMolecule"]
+				# molecule = line["Molecule"]
 				excitation = line["Excitation"]
 				functional = line["Functional"]
 				if functional == "CAM-B3LYP":
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 				no_contr = line["no contr"]
 
 				versions = 1
-				if "Delta" in excitation or "Sigmau" in excitation:
+				if "Delta" in excitation or "Sigma-" in excitation:
 					versions = 2
 				Lambda = np.zeros(versions)
 
@@ -56,7 +56,6 @@ if __name__ == '__main__':
 					for j in range(int(no_contr)):
 						phia = line["occ" + str(j + 1)]
 						phib = line["virt" + str(j + 1)]
-						print(molecule, excitation, functional, phia, phib)
 						c = line["contr" + str(j + 1)]
 						if args.format=='turbomole':
 							if "e" in phia and "e" in phib:
@@ -95,10 +94,12 @@ if __name__ == '__main__':
 
 					if os.path.isfile(filenamea) and os.path.isfile(filenameb):
 						ov = overlap(filenamea, filenameb)
-                        print("overlap=",ov)
 						Lambda[i] += ov*float(c)
 					else:
-						print(molecule, excitation, functional, phia, phib, versions)
+						print("Failed:",molecule, excitation, functional, phia, phib, versions)
+						print("Looking for files:")
+						print(filenamea)
+						print(filenameb)
 						failed = True
 
 

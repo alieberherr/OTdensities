@@ -14,7 +14,7 @@ function expcost_multiply(result,l,r,v,eps,alpha,beta,tol=1e-10)
     	for j in 1:size(v)[1]
             tmp=0.
     		for k in 1:size(r)[2]
-    			tmp += (l[i, k] - r[j, k])^2
+    			tmp += .5*(l[i, k] - r[j, k])^2
             end
     		result[i] += v[j]*exp((-tmp+alpha[i]+beta[j])/eps)
         end
@@ -50,7 +50,7 @@ function eval_cost(x,y,u,v,alpha,beta,eps)
         for j in 1:m
             costij = 0.
             for k in 1:size(x)[2]
-                costij += (x[i, k] - y[j, k])^2
+                costij += .5*(x[i, k] - y[j, k])^2
             end
             blcost[i] += costij*u[i]*exp((alpha[i] + beta[j] - costij)/eps)*v[j]
         end
@@ -60,7 +60,7 @@ function eval_cost(x,y,u,v,alpha,beta,eps)
     return cost
 end
 
-function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=2000,threshold=1e-08,tau=1e5,evalStep=500)
+function sinkhorn_explmul_logstab(x,y,a,b,eps,numItermax=100000,threshold=1e-08,tau=1e5,evalStep=1000)
     n = size(x)[1]
     m = size(y)[1]
 
