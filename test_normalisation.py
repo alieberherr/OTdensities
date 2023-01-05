@@ -11,7 +11,7 @@ parser.add_argument('--dir', help="working directory")
 molecules = ["DMABN","PP","acene1","acene2","acene3","acene4","acene5","betadipeptide","co","dipeptide","formaldehyde",
              "hcl","n2","polyacetylene2","polyacetylene3","polyacetylene4","polyacetylene5","tripeptide"]
 molecules = ["n2","formaldehyde","co"]
-molecules = ["co"]
+molecules = ["formaldehyde"]
 functionals = ['b3lyp','camb3lyp']
 
 # def test_orca(args):
@@ -49,7 +49,7 @@ functionals = ['b3lyp','camb3lyp']
 # 		print "mo=%s - normalisation %f"%(mo, I1)
         
 def test_turbomole(args):
-	with open("../collection/normalisation_19d0_co.csv",'w') as wfile:
+	with open("../collection/normalisation_24d0_formaldehyde.csv",'w') as wfile:
 		writer = csv.DictWriter(wfile, fieldnames=["Molecule", "Functional", "Orbital", "Integral"])
 		writer.writeheader()
 		for molecule in molecules:
