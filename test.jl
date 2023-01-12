@@ -1,8 +1,4 @@
-include("sinkhorn_mul.jl")
-include("sinkhorn_mul_logstab.jl")
-# include("theta.jl")
-include("sinkhorn_explmul.jl")
-include("sinkhorn_explmul_logstab.jl")
+include("sinkhorn.jl")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

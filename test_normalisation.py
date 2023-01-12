@@ -49,7 +49,7 @@ functionals = ['b3lyp','camb3lyp']
 # 		print "mo=%s - normalisation %f"%(mo, I1)
         
 def test_turbomole(args):
-	with open("../collection/normalisation_24d0_formaldehyde.csv",'w') as wfile:
+	with open("../collection/normalisation.csv",'w') as wfile:
 		writer = csv.DictWriter(wfile, fieldnames=["Molecule", "Functional", "Orbital", "Integral"])
 		writer.writeheader()
 		for molecule in molecules:
