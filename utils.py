@@ -124,13 +124,10 @@ def integrate3D(grid, vals):
 	z = remove_duplicates(grid[:,2])
 	vals = vals.reshape((x.size, y.size, z.size))
 	res = np.zeros(x.size)
-	for i in range(x.size):
-		res2 = np.zeros(y.size)
-		for j in range(y.size):
-			tmp = vals[i, j,:]
-			res2[j] = scipy.integrate.simps(tmp, z)
-		res[i] = scipy.integrate.simps(res2, y)
-	I3 = scipy.integrate.simps(res, x)
+	dx = x[1]-x[0]
+	dy = y[1]-y[0]
+	dz = z[1]-z[0]
+	I3 = np.sum(vals)*dx*dy*dz
 	return I3
 
 if __name__=='__main__':

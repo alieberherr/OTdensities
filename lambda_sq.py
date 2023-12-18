@@ -39,8 +39,8 @@ if __name__ == '__main__':
 				failed=False
 				if line["no contr"] == '':
 					continue
-				# molecule = line["\xef\xbb\xbfMolecule"]
-				molecule = line["\ufeffMolecule"]
+				molecule = line["Molecule"]
+				# molecule = line["\ufeffMolecule"]
 				excitation = line["Excitation"]
 				functional = line["Functional"]
 				if functional == "CAM-B3LYP":
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 				no_contr = line["no contr"]
 
 				versions = 1
-				if "Delta" in excitation or "Sigmau" in excitation:
+				if "Delta" in excitation or "Sigmau" in excitation or "Sigma-" in excitation:
 					versions = 2
 				Lambda = np.zeros(versions)
 
@@ -92,7 +92,6 @@ if __name__ == '__main__':
 						filenamea = args.dir + molecule + "/" + functional + args.orbitals + phia + ".cub"
 						filenameb = args.dir + molecule + "/" + functional + args.orbitals + phib + ".cub"
 
-					print(filenamea,filenameb)
 					if os.path.isfile(filenamea) and os.path.isfile(filenameb):
 						ov = overlap(filenamea, filenameb)
 						print("overlap=",ov)

@@ -39,8 +39,8 @@ if __name__ == '__main__':
 				failed=False
 				if line["no contr"] == '':
 					continue
-				molecule = line["\ufeffMolecule"]
-				# molecule = line["Molecule"]
+				# molecule = line["\ufeffMolecule"]
+				molecule = line["Molecule"]
 				excitation = line["Excitation"]
 				functional = line["Functional"]
 				no_contr = line["no contr"]
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 				print("Contributions:")
 
 				versions = 1
-				if "Delta" in excitation or "Sigma-" in excitation:
+				if "Delta" in excitation or "Sigmau-" in excitation or "Sigma-" in excitation:
 					versions = 2
 				Lambda = np.zeros(versions)
 

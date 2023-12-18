@@ -8,7 +8,7 @@ import csv
 import os
 
 
-parser = argparse.ArgumentParser(description="Computation of Theta descriptor")
+parser = argparse.ArgumentParser(description="Computation of Theta descriptor for different regularisation parameters.")
 parser.add_argument('--dir', default=os.getcwd() + '/', help="working directory for orbitals")
 parser.add_argument('--csvfile', help='name of CSV file with excitation data')
 parser.add_argument('--orbitals', help='home directory of orbitals')
@@ -27,14 +27,21 @@ def sinkhorndiv(phia,phib):
 	vals1 = vals1**2+1e-16
 	vals2 = vals2**2+1e-16
 	mxdist = np.linalg.norm(grid[0,:]-grid[-1,:])**2
-	eps = mxdist/1e4
-	Loss = SamplesLoss("sinkhorn", p=2, blur=eps, scaling=0.8)
+	eps_list = [mxdist/1e3,mxdist/1e4,mxdist/1e5,mxdist/1e6,mxdist/1e7,mxdist/1e8,mxdist/1e9]
+	eps_list = [mxdist/1e3,mxdist/1e4,mxdist/1e5,mxdist/1e6]
+#	eps_list = [mxdist/1e7,mxdist/1e8,mxdist/1e9]
+	losses = np.zeros(4)
+	for i,eps in enumerate(eps_list):
+		print("Working on eps=",eps)
+		Loss = SamplesLoss("sinkhorn", p=2, blur=eps, scaling=0.8)
 	
-	v1 = torch.from_numpy(vals1)
-	v2 = torch.from_numpy(vals2)
-	x = torch.from_numpy(grid)
-	y = torch.clone(x)
-	return Loss(v1,x,v2,y).item(),eps
+		v1 = torch.from_numpy(vals1)
+		v2 = torch.from_numpy(vals2)
+		x = torch.from_numpy(grid)
+		y = torch.clone(x)
+		losses[i] = Loss(v1,x,v2,y).item()
+		print("Loss:",losses[i])
+	return losses,eps_list
 
 
 if __name__=="__main__":
@@ -56,8 +63,8 @@ if __name__=="__main__":
 				failed=False
 				if line["no contr"] == '':
 					continue
-				molecule = line["\ufeffMolecule"]
-				# molecule = line["Molecule"]
+				# molecule = line["\ufeffMolecule"]
+				molecule = line["Molecule"]
 				excitation = line["Excitation"]
 				functional = line["Functional"]
 				if functional == "CAM-B3LYP":
@@ -71,7 +78,7 @@ if __name__=="__main__":
 				versions = 1
 				if "Delta" in excitation or "Sigma-" in excitation or "Sigmau-" in excitation:
 					versions = 2
-				Theta = np.zeros(versions)
+				Theta = np.zeros((4,versions))
 
 				for i in range(versions):
 					for j in range(int(no_contr)):
@@ -115,10 +122,10 @@ if __name__=="__main__":
 
 						if os.path.isfile(filenamea) and os.path.isfile(filenameb):
 							th,eps = sinkhorndiv(filenamea, filenameb)
-							print(f"Theta %6.4f with contribution %5.3f"%(th,float(c)))
-							Theta[i] += th*float(c)
+							for k in range(4):
+								Theta[k,i] += th[k]*float(c)
 						else:
-							print("Faied:",molecule, excitation, functional, phia, phib, versions)
+							print("Failed:",molecule, excitation, functional, phia, phib, versions)
 							print("Looked for files:")
 							print(filenamea)
 							print(filenameb)
@@ -127,8 +134,14 @@ if __name__=="__main__":
 							break
 
 
+				print("Theta:",Theta)
 				if not failed:
 					if (versions==1):
-						writer.writerow({"Molecule": molecule, "Excitation": excitation, "Functional": functional, "Theta1": Theta[0], "eps":eps})
+						for k in range(4):
+							writer.writerow({"Molecule": molecule, "Excitation": excitation, "Functional": functional, "Theta1": Theta[k,0], "eps":eps[k]})
 					else:
-						writer.writerow({"Molecule": molecule, "Excitation": excitation, "Functional": functional, "Theta1": Theta[0], "Theta2": Theta[1], "eps":eps})
+						for k in range(4):
+							writer.writerow({"Molecule": molecule, "Excitation": excitation, "Functional": functional, "Theta1": Theta[k,0], "Theta2": Theta[k,1], "eps":eps[k]})
+
+
+
