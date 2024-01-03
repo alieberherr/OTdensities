@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import argparse
+import csv
 
 parser = argparse.ArgumentParser(description="Normalising Theta descriptor by <r^2> of the orbitals (assumes <r^2> has been precomputed)")
 parser.add_argument('--thetafile', help='name of CSV file with Theta data')
@@ -10,87 +11,78 @@ parser.add_argument('--resfile', help='results file')
 
 if __name__=="__main__":
 	args = parser.parse_args()
-	
+
 	orbdat = pd.read_csv(args.orbfile)
 	thetadat = pd.read_csv(args.thetafile)
-	excdat = pd.read_csv(args.excfile)
 
 	f = open(args.resfile,'w')
-	f.write("Molecules,Functional,Excitation,Type,Theta (orig),Theta (norm)\n")
+	f.write("Molecules,Functional,Excitation,Type,Theta 1 (orig),Theta 2 (orig),Theta 1 (norm),Theta 2(norm)\n")
 
-	for (idx,row) in excdat.iterrows():
-		molecule = row.loc["Molecule"]
-		excitation = row.loc["Excitation"]
-		functional = row.loc["Functional"]
-		extype = row.loc["Type"]
+	reader = csv.DictReader(open(args.excfile))
+	for line in reader:
+		molecule = line["\ufeffMolecule"]
+		excitation = line["Excitation"]
+		functional = line["Functional"]
+		extype = line["Type"]
 
-		ncontr = row.loc["no contr"]
-		if ncontr > 1:
-			continue
-		# find Theta
-		theta = thetadat[thetadat["Molecule"] == molecule]
-		theta = theta[theta["Functional"] == functional]
+		no_contr = int(line["no contr"])
 
-		# find overlaps of involved orbitals
-		orbi = row.loc["occ1"]
-		orbf = row.loc["virt1"]
-		orbi = orbi.replace(" ","")
-		orbf = orbf.replace(" ","")
-		nversions = 1
-		if "e" in orbi or "e" in orbf:
-			nversions = 2
+		versions = 1
+		if "Delta" in excitation or "Sigma-" in excitation or "Sigmau-" in excitation:
+			versions = 2
+		Theta = np.zeros(versions)
+		Theta_norm = np.zeros(versions)
 
-		for i in range(nversions):
-			phia = orbi
-			phib = orbf
-			if "e" in phia and "e" in phib:
-				if i==0:
-					phia += "1"
-					phib += "1"
-				if i==1:
-					phia += "1"
-					phib += "2"
-			elif "e" in phia:
-				if i==0:
-					phia += "1"
-				if i==1:
-					phia += "2"
-			elif "e" in phib:
-				if i==0:
-					phib += "1"
-				if i==1:
-					phib += "2"
-		
-			phia = phia + ".cub"
-			phib = phib + ".cub"
+		for i in range(versions):
+			for j in range(no_contr):
+				phia = line["occ%i"%(j+1)]
+				phib = line["virt%i"%(j+1)]
+				c = float(line["contr%i"%(j+1)])
 
-			# find overlaps of involved orbitals
-			overlap = orbdat[orbdat["Molecule"] == molecule]
-			overlap = overlap[overlap["Functional"] == functional]
-			ovi = overlap[overlap["Orbital"] == phia]["<r^2>"]
-			ovf = overlap[overlap["Orbital"] == phib]["<r^2>"]
-			if len(ovi) == 0 or len(ovf) == 0:
-				if len(ovi) == 0:
-					print("orbi:",orbi)
-					print("not found:",phia)
-				if len(ovf) == 0:
-					print("orbf:",orbf)
-					print("not found:",phib)
-				continue
-			ovi = ovi.item()
-			ovf = ovf.item()
-	
-			# choose the right theta
-			if i==0:
-				thetacurr = theta[theta["Excitation"] == excitation]["Theta 1 (calc, 0.8)"]
-			if i==1:
-				thetacurr = theta[theta["Excitation"] == excitation]["Theta 2 (calc, 0.8)"]
-			thetacurr = thetacurr.item()
-			if np.isnan(thetacurr):
-				continue
-			# normalise theta
-			normtheta = thetacurr/np.sqrt(ovi*ovf)
+				if "e" in phia and "e" in phib:
+					if i==0:
+						phia += "1"
+						phib += "1"
+					if i==1:
+						phia += "1"
+						phib += "2"
+					if i==2:
+						phia += "2"
+						phib += "1"
+					if i==3:
+						phia += "2"
+						phib += "2"
+				elif "e" in phia:
+					if i==0:
+						phia += "1"
+					if i==1:
+						phia += "2"
+				elif "e" in phib:
+					if i==0:
+						phib += "1"
+					if i==1:
+						phib += "2"
 
-			f.write(molecule + "," + functional + "," + excitation + "," + extype + ",%f,%f\n"%(thetacurr,normtheta))
+				phia = phia.replace(" ","")
+				phib = phib.replace(" ","")
 
-	f.close()
+				thetacurr = thetadat[(thetadat["Molecule"]==molecule) & (thetadat["Functional"]==functional) & (thetadat["occ"]==phia) & (thetadat["virt"]==phib)]
+				ava = orbdat[(orbdat["Molecule"]==molecule) & (orbdat["Functional"]==functional) & (orbdat["Orbital"]==phia)]
+				avb = orbdat[(orbdat["Molecule"]==molecule) & (orbdat["Functional"]==functional) & (orbdat["Orbital"]==phib)]
+
+				if (len(thetacurr)==0):
+					continue
+
+				thetacurr = thetacurr["S"].item()
+				ava = ava["<r^2>"].item()
+				avb = avb["<r^2>"].item()
+				Theta[i] += c*thetacurr
+				Theta_norm[i] += c*thetacurr/np.sqrt(ava*avb)
+
+		if versions==1:
+			f.write("%s,%s,%s,%s,%f,%f,%f,%f\n"%(molecule,functional,excitation,extype,Theta[0],float("nan"),Theta_norm[0],float("nan")))
+		if versions==2:
+			f.write("%s,%s,%s,%s,%f,%f,%f,%f\n"%(molecule,functional,excitation,extype,Theta[0],Theta[1],Theta_norm[0],Theta[1]))
+
+
+

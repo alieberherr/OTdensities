@@ -118,7 +118,7 @@ if __name__=="__main__":
 							print(f"Theta %6.4f with contribution %5.3f"%(th,float(c)))
 							Theta[i] += th*float(c)
 						else:
-							print("Faied:",molecule, excitation, functional, phia, phib, versions)
+							print("Failed:",molecule, excitation, functional, phia, phib, versions)
 							print("Looked for files:")
 							print(filenamea)
 							print(filenameb)
