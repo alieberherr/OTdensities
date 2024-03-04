@@ -25,12 +25,10 @@ def rsquared(phi):
 	return I
 
 if __name__=='__main__':
-	pass
-#	phi = "/u/dem/chem1614/Documents/projects/optimal-transport-excitations/molecules_turbomole/acene1/pbe/1au.cub"
-#	rsquared(phi)
-	dir = "/u/dem/chem1614/Documents/projects/optimal-transport-excitations/collection/calc_turbomole"
+	# get directory where Turbomole results are stored
+	dir = "/u/dem/chem1614/Documents/projects/optimal-transport-excitations/data_final/calc_turbomole"
 
-	f = open("../collection/rsquared/rsquared.csv",'w')
+	f = open("../data_final/rsquared/rsquared.csv",'w')
 	f.write("Molecule,Functional,Orbital,<r^2>\n")
 	molecules = os.listdir(dir)
 	print(molecules)

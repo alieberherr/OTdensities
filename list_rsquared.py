@@ -1,7 +1,7 @@
 import csv
 import numpy as np
 
-exfile = "../data_final/turbomole_SOtransitions.csv"
+exfile = "../data_final/turbomole_SOtransitions.csv" # change this to desired input
 
 # compile lists of all pairs phi_i, phi_a to calculate S
 orbpairs = {}
@@ -64,7 +64,7 @@ with open(exfile,'r') as file:
 			orbpairs[(molecule,functional)] = currpairs
 
 # write the pairs needed to disk
-f = open("../data_final/rsquared/SOT.csv",'w')
+f = open("../data_final/rsquared/SOT.csv",'w') # change this to desired output for single orbital transitions
 f.write("Molecule,Functional,occ,virt\n")
 for (molecule,functional) in orbpairs:
 	pairs = orbpairs[(molecule,functional)]
@@ -80,7 +80,7 @@ for key in orbpairs:
 	orbs[key] = [tmp for tmp in set(orb)]
 
 # write the orbitals needed to disk
-f = open("../data_final/rsquared/orbs.csv",'w')
+f = open("../data_final/rsquared/orbs.csv",'w') # change this to desired output for list of all orbitals
 f.write("Molecule,Functional,orb\n")
 for (molecule,functional) in orbs:
 	orb = orbs[(molecule,functional)]

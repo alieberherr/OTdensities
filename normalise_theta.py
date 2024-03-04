@@ -71,6 +71,7 @@ if __name__=="__main__":
 				avb = orbdat[(orbdat["Molecule"]==molecule) & (orbdat["Functional"]==functional) & (orbdat["Orbital"]==phib)]
 
 				if (len(thetacurr)==0):
+					print("failed:",molecule,functional,phia,phib)
 					continue
 
 				thetacurr = thetacurr["S"].item()
@@ -82,7 +83,7 @@ if __name__=="__main__":
 		if versions==1:
 			f.write("%s,%s,%s,%s,%f,%f,%f,%f\n"%(molecule,functional,excitation,extype,Theta[0],float("nan"),Theta_norm[0],float("nan")))
 		if versions==2:
-			f.write("%s,%s,%s,%s,%f,%f,%f,%f\n"%(molecule,functional,excitation,extype,Theta[0],Theta[1],Theta_norm[0],Theta[1]))
+			f.write("%s,%s,%s,%s,%f,%f,%f,%f\n"%(molecule,functional,excitation,extype,Theta[0],Theta[1],Theta_norm[0],Theta_norm[1]))
 
 
 

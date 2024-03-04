@@ -3,33 +3,6 @@ import re
 import scipy.integrate
 import sys
 
-#def cube_to_txt(filename, outname, slicing='xy', pattern = r'[\+\-]?\d{1,}\.?\d{0,}[eE]?[\+\-]?\d{0,}'):
-#	grid, vals, stats = cube_to_array(filename)
-#	nx, ny, nz = stats["npoints"][0], stats["npoints"][1], stats["npoints"][2]
-#	dx, dy, dz = stats["dx"][0], stats["dx"][1], stats["dx"][2]
-#	xlim, ylim, zlim = stats["lims"][0], stats["lims"][1], stats["lims"][2]
-
-#	x = np.linspace(xlim, xlim+nx*dx, nx)
-#	y = np.linspace(ylim, ylim+ny*dy, ny)
-#	z = np.linspace(zlim, zlim+nz*dz, nz)
-#	X, Y, Z = np.meshgrid(x, y, z, indexing="ij")
-#	grid = np.zeros((vals.size,3))
-#	o = open(outname)
-#	if slicing == None:
-#		for i in range(vals.size):
-#			o.write(str(grid[i,0])+'    ' + str(grid[i,1]) + '    ' + str(grid[i,2]) + '    ' + str(vals[i]) + '\n')
-#	elif slicing == 'xy':
-#		vals = vals.reshape((nx,ny,nz))
-#		curr = vals[:,:,nz//2]
-#	elif slicing == 'yz':
-#		vals = vals.reshape((nx,ny,nz))
-#		curr = vals[:,ny//2,:]
-#	elif slicing == 'xy':
-#		vals = vals.reshape((nx,ny,nz))
-#		curr = vals[nx//2,:,:]
-#	o.close()
-
-
 def cube_to_array(filename, pattern = r'[\+\-]?\d{1,}\.?\d{0,}[eE]?[\+\-]?\d{0,}'):
 	f = open(filename)
 	natoms = 0.
@@ -130,15 +103,3 @@ def integrate3D(grid, vals):
 	I3 = np.sum(vals)*dx*dy*dz
 	return I3
 
-if __name__=='__main__':
-	if len(sys.argv) > 1 and sys.argv[1] == "txt":
-		dirname = '/Users/annina/Documents/Projects/OTproject/case_normalisation/formaldehyde/'
-		mos = ['7','13']
-		grids = ['interactive', 'orcainput', 'large', 'huge']
-		functionals = ['PBE', 'B3LYP', 'CAMB3LYP']
-		for grid in grids:
-			for mo in mos:
-				for functional in functionals:
-					filename = dirname + grid + "/formaldehyde_" + functional + ".mo" + mo + "a.cube"
-					outname = dirname + grid + "/formaldehyde_" + functional + ".mo" + mo + "a.txt"
-					cube_to_array(filename)
