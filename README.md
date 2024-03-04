@@ -6,7 +6,7 @@ Codes and data files to accompany the report "Optimal Transport distances to cha
 
 | name | description |
 |------|-------------|
-| lambda.py | calculates $\Lambda$ diagnostic | 
+| lambda.py | calculates $\Lambda$ diagnostic [1] | 
 | lambda_sq.py | calculates modified $\Lambda$ (squaring the overlaps) |
 | normalise_theta.py | calculate $\Theta'$ from pre-computed $\Theta$ and <r<sup>2</sup>> |
 | rsquared.py | calculate  <r<sup>2</sup>> for a set of orbitals |
