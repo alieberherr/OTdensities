@@ -24,4 +24,4 @@ Codes and data files to accompany the report "Optimal Transport distances to cha
 
 
 -----------------------
-[1] Peach et al., *J. Chem. Phys*, **128**, (2008)
+[1] M. J. G. Peach, P. Benfield, T. Helgaker, D. Tozer, *J. Chem. Phys*, **128**, (2008)
